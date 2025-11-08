@@ -1,55 +1,30 @@
-I have an already running AlloyDB Cluster configured in GCP Project gcp-poc-data-dev and I want to access the AlloyDB via VM running in GCP Project gcp-poc-apps-dev  , I cannot use Private Service Connect since the Cluster was not created with Private Service Access Option and I have setup a bastion host in Project gcp-poc-data-dev that has access to AlloyDB  instance. How can I connect to bastion host since Project gcp-poc-data-dev and Project gcp-poc-apps-dev hav different VPCs? I do not want to use VPC peering and would like to user IAP? Can you suggest gcloud command to achieve the overall objective of accessing cross project AlloyDB via IAP?
+I have one orders table in AlloyDB with below schema.
+CREATE TABLE public.orders (
+	id bigserial NOT NULL,
+	amount int4 NULL,
+	category varchar(255) NULL,
+	description varchar(255) NULL,
+	payment varchar(255) NULL,
+    status varchar(50) NOT NULL,  
+	CONSTRAINT orders_pkey PRIMARY KEY (id)
+);
+I want to generate custom metrics for my orders data backlog from alloydb database based on status and publish metrics to gcp cloud monitoring using a nodejs application.
+Can you write code for the same in the current project. I have already created a skelteon project and installed pg and cloud monitoring node packages.
+Name of Custom Metrics should be custom.googleapis.com/orders/backlog_count
 
-### Deployment Diagram for Cross-Project AlloyDB Access via IAP
+Criteria for backlog is below SQL
 
-Here is a deployment diagram that illustrates the solution using IAP for TCP forwarding to securely connect to your AlloyDB instance across projects.
+SELECT COUNT(*) AS backlog
+FROM orders
+WHERE status = 'PENDING';
 
-```plantuml
-@startuml
-!theme vibrant
-!define DEVICONS https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/main/devicons
-!define FONTAWESOME https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/main/font-awesome-5
-!include <DEVICONS/google.puml>
-!include <FONTAWESOME/database.puml>
-!include <FONTAWESOME/server.puml>
-!include <FONTAWESOME/user_secret.puml>
+I also want to track processed orders.
+Name of Custom Metrics should be custom.googleapis.com/orders/processed_count
 
-title AlloyDB Cross-Project Access via IAP Tunnel
+Criteria for processed orders is below SQL
 
-cloud "Google Cloud" {
-    package "Project: gcp-poc-apps-dev (VPC-A)" {
-        node "Application VM\n<size:12><$server>" as AppVM {
-            artifact "Your Application" as App
-            artifact "gcloud CLI" as GCloudCLI
-        }
-    }
+SELECT COUNT(*) AS processed_count
+FROM orders
+WHERE status = 'PROCESSED';
 
-    package "Project: gcp-poc-data-dev (VPC-B)" {
-        node "Bastion Host VM\n<size:12><$server>" as BastionVM {
-             artifact "AlloyDB Auth Proxy" as AuthProxy
-        }
-        database "AlloyDB Cluster\n<size:12><$database>" as AlloyDB
-    }
-
-    component "Identity-Aware Proxy (IAP)\n<size:12><$user_secret>" as IAP
-}
-
-' === Connection Flow ===
-App -> GCloudCLI: 1. Initiates tunnel\n(gcloud compute start-iap-tunnel)
-GCloudCLI --> IAP: 2. Authenticates & Authorizes\n(IAM Check)
-IAP --> BastionVM: 3. Forwards TCP traffic
-App -> GCloudCLI: 4. App connects to localhost port
-BastionVM -> AuthProxy: 5. Traffic received from IAP
-AuthProxy --> AlloyDB: 6. Securely connects to AlloyDB
-
-' === Network Boundaries ===
-BastionVM -- AlloyDB : (Private IP within VPC-B)
-
-note right of AppVM
-  The application connects to `localhost:5432`,
-  which is tunneled by `gcloud` to the
-  bastion host.
-end note
-
-@enduml
-```
+Can you modify the current code to get pending and processed records in one go and generate metrics accordingly ?
