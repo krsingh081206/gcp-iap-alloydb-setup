@@ -41,7 +41,7 @@ Assumption user has Monitoring Metrics Writer IAM role to publish metrics.
  Setup code and run node index.js
  
  gcloud beta monitoring channels list
- gcloud beta monitoring channels create   --display-name="Backlog Email Alerts"   --type=email   --channel-labels=email_address="kumar.ritesh@hsc.com"
+ gcloud beta monitoring channels create   --display-name="Backlog Email Alerts"   --type=email   --channel-labels=email_address="kxxxxxxxxxh@gmail.com"
  gcloud beta monitoring channels list
  
  mkdir alert-policy
