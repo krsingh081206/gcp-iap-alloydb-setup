@@ -1,31 +1,55 @@
-# Instructions for setting up Observability in GCP via Custom Metrics
+# AlloyDB Custom Metrics to Google Cloud Monitoring
 
 This Node.js application fetches order statistics from an AlloyDB database and publishes them as custom metrics to Google Cloud Monitoring.
 
 ## Prerequisites
 
 1.  **Node.js:** Ensure you have Node.js (version 12 or higher) installed.
-2.  **gcloud CLI:** Have the Google Cloud SDK installed and authenticated.
+2.  **Google Cloud SDK:** Have the `gcloud` CLI installed and authenticated.
     ```bash
     gcloud auth application-default login
     ```
-3.  **Dependencies:** Install the required Node.js packages.
+3.  **GCP Project:** A Google Cloud project with billing enabled.
+4.  **AlloyDB Instance:** An active AlloyDB for PostgreSQL instance with a database created.
+5.  **AlloyDB Table:** The `orders` table must be created in your database.
     ```bash
-    npm install pg @google-cloud/monitoring
+    npm install
     ```
-4.  **AlloyDB Table:** Make sure you have the `orders` table created in your database as per the specified schema.
+    Use the following SQL to create the table and add some sample data:
+    ```sql
+    CREATE TABLE public.orders (
+        id bigserial NOT NULL,
+        amount int4 NULL,
+        category varchar(255) NULL,
+        description varchar(255) NULL,
+        payment varchar(255) NULL,
+        status varchar(50) NOT NULL,  
+        CONSTRAINT orders_pkey PRIMARY KEY (id)
+    );
+
+    INSERT INTO orders (status) VALUES ('PENDING'), ('PROCESSED');
+    ```
+6.  **IAM Permissions:** Ensure the principal (user, service account) running the script has the following IAM roles:
+    *   `roles/alloydb.client`
+    *   `roles/monitoring.metricWriter`
+    *   `roles/monitoring.notificationChannelEditor`
+    *   `roles/monitoring.alertPolicyEditor`
 
 ## Configuration
 
-Before running the application, you need to configure your GCP project ID and AlloyDB connection details in `index.js`:
+The application is configured using environment variables. Set the following variables in your shell before running the script.
 
-1.  Open `index.js`.
-2.  Set the `projectId` variable to your Google Cloud project ID.
-3.  Update the `dbConfig` object with your AlloyDB user, private IP address, database name, and password.
+```bash
+# Replace with your actual configuration details
+export GOOGLE_CLOUD_PROJECT="your-gcp-project-id"
+export DB_USER="your-db-user"
+export DB_PASS="your-db-password"
+export DB_HOST="127.0.0.1" # Use 127.0.0.1 if using the AlloyDB Auth Proxy
+export DB_NAME="your-db-name"
+export DB_PORT="5432"
+```
 
-## Running the Application
-
-Once configured, you can run the application from your terminal:
+## Running the Metric Publishing Script
 
 ```bash
 node index.js
