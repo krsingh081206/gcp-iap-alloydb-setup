@@ -1,4 +1,4 @@
-# Gaining Observability: Publishing Custom AlloyDB Metrics to Google Cloud Monitoring and Setting Up Alerts
+# Gaining Observability: Publishing Application Metrics to Google Cloud Monitoring and Setting Up Alerts
 
 In today's data-driven world, having deep visibility into your application's performance and business-critical operations is paramount. While standard infrastructure metrics are useful, custom metrics that reflect your specific business logic can provide invaluable insights.
 
